@@ -9,7 +9,7 @@ This document serves as a comprehensive guide to understanding the **Sellix** We
 ### Tech Stack
 *   **Frontend**: React (Vite), Tailwind CSS, React Router DOM.
 *   **Backend**: Python FastAPI, Uvicorn.
-*   **Database/Data Source**: FakeStoreAPI (for product data).
+*   **Database/Data Source**: EscuelaJS API (for product data).
 *   **AI Integration**: Google Gemini API (via `google-generativeai` SDK).
 *   **State Management**: React Context API (`CartContext`).
 
@@ -29,7 +29,7 @@ graph TD
         Backend -->|POST /api/chat| ChatService[chat.py]
     end
     
-    ProductsService -->|Fetch Data| FakeStore[FakeStoreAPI]
+    ProductsService -->|Fetch & Transform| ExternalAPI[EscuelaJS API]
     ChatService -->|Generate Content| Gemini[Google Gemini AI]
 ```
 
@@ -53,8 +53,9 @@ This section walks through the user's experience and traces it back to the speci
 2.  **Data Fetching**:
     *   `ProductList` makes a `fetch('http://localhost:8000/api/products')` call on mount (`useEffect`).
     *   **Backend Integration**: The request hits `backend/main.py`, which routes it to `backend/products.py`.
-    *   `products.py` fetches real data from `https://fakestoreapi.com/products` and returns it to the frontend.
-3.  **Rendering**: The frontend maps over the returned JSON array and renders product cards.
+    *   `products.py` fetches data from `https://api.escuelajs.co/api/v1/products`.
+    *   **Adapter Logic**: The backend transforms the nested EscuelaJS data structure into the flat format expected by the frontend.
+3.  **Rendering**: The frontend receives the transformed JSON and renders product cards without needing to know the data source changed.
 
 ### C. Adding Items to Cart
 **What happens**: The user clicks the "Add to Cart" button on a product. The cart counter in the header updates.
@@ -110,7 +111,8 @@ This section walks through the user's experience and traces it back to the speci
 #### `products.py`
 *   **Role**: Product data service.
 *   **Key Code**:
-    *   `requests.get(...)`: Acts as a reverse proxy. It hides the upstream API source (`fakestoreapi`) from the client, allowing you to swap data sources later without changing frontend code.
+    *   `requests.get(...)`: Fetches data from the new `api.escuelajs.co`.
+    *   **Adapter Pattern**: Contains logic to reshape the external API's data (flattening categories, picking images) so the frontend code remains unchanged.
 
 #### `chat.py`
 *   **Role**: AI logic handler.
@@ -149,6 +151,6 @@ This section walks through the user's experience and traces it back to the speci
 ## 5. Key Technical Concepts
 
 1.  **Component-Based Architecture**: The UI is built from small, reusable pieces (`ProductList`, `CartDrawer`). Changes in one component don't break others.
-2.  **Proxy Pattern**: The backend acts as a proxy for product data. This solves CORS issues with external APIs and adds a security layer.
+2.  **Adapter Pattern**: The backend transforms inconsistent external data into a clean, predictable format for the frontend. This decoupling allowed us to switch APIs (FakeStore -> EscuelaJS) without breaking the UI.
 3.  **Context API**: Avoids "prop drilling" (passing data down 10 layers). The `CartProvider` wraps the whole app, so *any* component can access `addToCart` or `cartCount` instantly.
 4.  **Prompt Engineering**: The AI isn't just "raw" Gemini. It's "wrapped" in a specific persona ("You are the Sellix assistant...") defined in `chat.py` to ensure relevant and safe answers.
