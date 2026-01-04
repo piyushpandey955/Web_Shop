@@ -27,7 +27,7 @@ export default function ChatWidget() {
         setIsLoading(true)
 
         try {
-            const res = await fetch('http://localhost:8000/api/chat', {
+            const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: userMsg })
@@ -63,8 +63,8 @@ export default function ChatWidget() {
                             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 <div
                                     className={`max-w-[80%] p-3 rounded-2xl text-sm ${msg.role === 'user'
-                                            ? 'bg-indigo-600 text-white rounded-tr-none'
-                                            : 'bg-white border border-slate-200 text-slate-700 rounded-tl-none shadow-sm'
+                                        ? 'bg-indigo-600 text-white rounded-tr-none'
+                                        : 'bg-white border border-slate-200 text-slate-700 rounded-tl-none shadow-sm'
                                         }`}
                                 >
                                     {msg.content}
