@@ -48,7 +48,7 @@ function Home() {
           Curated Products for You
         </h2>
         <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-          Discover the latest gadgets and accessories powered by our AI assistant.
+          Discover the latest products and accessories powered by our AI assistant.
         </p>
       </div>
       <ProductList />
