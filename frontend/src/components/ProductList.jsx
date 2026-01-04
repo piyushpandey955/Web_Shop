@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
+import { useCart } from '../context/CartContext'
 
 export default function ProductList() {
     const [products, setProducts] = useState([])
     const [loading, setLoading] = useState(true)
+    const { addToCart } = useCart()
 
     useEffect(() => {
         fetch('http://localhost:8000/api/products')
@@ -45,7 +47,10 @@ export default function ProductList() {
                         <p className="text-xs text-slate-500 mb-4 capitalize">{product.category}</p>
                         <div className="mt-auto flex items-center justify-between">
                             <span className="text-lg font-bold text-indigo-600">${product.price}</span>
-                            <button className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-indigo-600 hover:text-white transition-colors">
+                            <button
+                                onClick={() => addToCart(product)}
+                                className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-indigo-600 hover:text-white transition-colors"
+                            >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
                             </button>
                         </div>
