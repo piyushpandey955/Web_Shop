@@ -7,7 +7,8 @@ export default function ProductList() {
     const { addToCart } = useCart()
 
     useEffect(() => {
-        fetch('/api/products')
+        const apiUrl = import.meta.env.VITE_API_URL || '/api';
+        fetch(`${apiUrl}/products`)
             .then(res => res.json())
             .then(data => {
                 setProducts(data)
