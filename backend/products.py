@@ -1,51 +1,67 @@
 from fastapi import APIRouter
+import json
+import os
 import requests
 
 router = APIRouter()
 
 @router.get("/products")
 async def get_products():
+    """
+    Fetches product data from EscuelaJS API.
+    Includes an adapter to transform the data to match the frontend's expected schema.
+    """
     try:
-        # Add User-Agent to avoid some bot blocks
-        headers = {"User-Agent": "Mozilla/5.0 (compatible; WebShop/1.0)"}
-        response = requests.get("https://fakestoreapi.com/products", headers=headers, timeout=10)
+        url = "https://api.escuelajs.co/api/v1/products"
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        raw_products = response.json()
         
-        response.raise_for_status() # Raise error for 4xx/5xx
+        # Transform data to match existing styling/frontend expectations
+        mapped_products = []
+        for item in raw_products:
+            # Extract first image or use placeholder
+            image_url = item.get("images", [""])[0] if item.get("images") else "https://picsum.photos/400?grayscale"
+            
+            # Clean up image URL strings (EscuelaJS sometimes returns raw JSON strings in the list)
+            if image_url.startswith('["') and image_url.endswith('"]'):
+                 image_url = image_url[2:-2]
+
+            mapped_item = {
+                "id": item.get("id"),
+                "title": item.get("title"),
+                "price": item.get("price"),
+                "description": item.get("description"),
+                "category": item.get("category", {}).get("name", "General"), # Flatten object to string
+                "image": image_url, 
+                "rating": {"rate": 4.5, "count": 10} # Inject missing rating
+            }
+            mapped_products.append(mapped_item)
+            
+        return mapped_products
+
+    except Exception as e:
+        print(f"Error fetching from EscuelaJS: {e}")
+        # Fallback to empty list or local error message if API fails
+        return [{"id": 0, "title": "Error fetching data from API", "price": 0, "image": "", "category": "error"}]
+
+    # Backup: Local File Method (Commented Out)
+    """
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(current_dir, "products.json")
+    with open(file_path, "r") as f:
+        return json.load(f)
+    """
+
+    # METHOD 2: External API (Commented Out)
+    # Use this if you want to fetch live data from the API
+    # Note: Public APIs may block requests from cloud servers (AWS/Render)
+    """
+    try:
+        response = requests.get("https://fakestoreapi.com/products")
+        response.raise_for_status()
         return response.json()
     except Exception as e:
-        print(f"Error fetching products: {e}")
-        # If response content exists but isn't JSON, print it for debugging
-        if 'response' in locals():
-            print(f"Response status: {response.status_code}")
-            print(f"Response content snippet: {response.text[:200]}")
-        
-        # Fallback Mock Data so the app doesn't break
-        return [
-             {
-                "id": 1,
-                "title": "Fjallraven - Foldsack No. 1 Backpack, Fits 15 Laptops",
-                "price": 109.95,
-                "description": "Your perfect pack for everyday use and walks in the forest. Stash your laptop (up to 15 inches) in the padded sleeve, your everyday",
-                "category": "men's clothing",
-                "image": "https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg",
-                "rating": {"rate": 3.9, "count": 120}
-            },
-            {
-                "id": 2,
-                "title": "Mens Casual Premium Slim Fit T-Shirts ",
-                "price": 22.3,
-                "description": "Slim-fitting style, contrast raglan long sleeve, three-button henley placket, light weight & soft fabric for breathable and comfortable wearing.",
-                "category": "men's clothing",
-                "image": "https://fakestoreapi.com/img/71-3HjGNDUL._AC_SY879._SX._UX._SY._UY_.jpg",
-                "rating": {"rate": 4.1, "count": 259}
-            },
-             {
-                "id": 3,
-                "title": "Solid Gold Petite Micropave ",
-                "price": 168,
-                "description": "Satisfaction Guaranteed. Return or exchange any order within 30 days.Designed and sold by Hafeez Center in the United States. Satisfaction Guaranteed. Return or exchange any order within 30 days.",
-                "category": "jewelery",
-                "image": "https://fakestoreapi.com/img/61sbMiUnoGL._AC_UL640_QL65_ML3_.jpg",
-                "rating": {"rate": 3.9, "count": 70}
-            }
-        ]
+        print(f"API Error: {e}")
+        return []
+    """
