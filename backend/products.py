@@ -1,6 +1,5 @@
 from fastapi import APIRouter
-import json
-import os
+
 import requests
 
 router = APIRouter()
@@ -45,23 +44,4 @@ async def get_products():
         # Fallback to empty list or local error message if API fails
         return [{"id": 0, "title": "Error fetching data from API", "price": 0, "image": "", "category": "error"}]
 
-    # Backup: Local File Method (Commented Out)
-    """
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(current_dir, "products.json")
-    with open(file_path, "r") as f:
-        return json.load(f)
-    """
 
-    # METHOD 2: External API (Commented Out)
-    # Use this if you want to fetch live data from the API
-    # Note: Public APIs may block requests from cloud servers (AWS/Render)
-    """
-    try:
-        response = requests.get("https://fakestoreapi.com/products")
-        response.raise_for_status()
-        return response.json()
-    except Exception as e:
-        print(f"API Error: {e}")
-        return []
-    """
